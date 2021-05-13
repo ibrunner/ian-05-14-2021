@@ -1,62 +1,65 @@
-import React from 'react';
+import React from "react";
 
-export type Order = {
-    asks: number[][];
-    bids: number[][];
-    feed: string;
-    product_id: string;
+export type OrderMap = Map<number, number>;
+
+export type OrderMessage = {
+  asks: number[][];
+  bids: number[][];
+  feed: string;
+  product_id: string;
 };
 
-// type OrderData = {
-//     asks: Map<number, number>;
-// }
-// adapted from https://stackoverflow.com/questions/60152922/proper-way-of-using-react-hooks-websockets
-function useOrderData(){
-    // const [isPaused, setPause] = React.useState(false);
-    // const [orders, setOrders] = React.useState<Order[]>([])
-    const [asks, setAsks] = React.useState<Map<number, number>>(new Map())
-    const ws: React.MutableRefObject<WebSocket | null> = React.useRef(null);
+function getUpdatedOrderMap(
+  orderMap: OrderMap,
+  newOrders: number[][]
+): OrderMap {
+  const updatedOrders: OrderMap = new Map(orderMap);
+  if (newOrders.length) {
+    newOrders.forEach((order) => {
+      const [price, size] = order;
+      !size ? updatedOrders.delete(price) : updatedOrders.set(price, size);
+    });
+  }
+  return updatedOrders;
+}
 
-    React.useEffect(() => {
-        const params = {event:"subscribe", feed:"book_ui_1", product_ids:["PI_XBTUSD"]};
-        ws.current = new WebSocket("wss://www.cryptofacilities.com/ws/v1");
-        ws.current.onopen = () => {
-          ws.current?.send(JSON.stringify(params))
-        };
-        ws.current.onclose = () => console.log("ws closed");
-  
-        return () => {
-            ws.current?.close();
-        };
-    }, []);
-  
-    React.useEffect(() => {
-        if (!ws.current) return;
-  
-        ws.current.onmessage = e => {
-            // if (isPaused) return;
-            const message: Order = JSON.parse(e.data);
-            // TODO size fixer
-            if(asks.size > 10) {
-                setAsks(new Map());
-                return;    
-            }
-           
-            const updatedAsks= new Map(asks);
-            if(message.asks?.length) {
-                message.asks.forEach(messageAsk => {
-                const [price, size] = messageAsk;
-                !size ? updatedAsks.delete(price) : updatedAsks.set(price, size)
-            });
-            setAsks(updatedAsks);
-            }
-            console.log("e", message.asks);
-        };
-    }, [asks]);
+function useOrderData() {
+  const [asks, setAsks] = React.useState<OrderMap>(new Map());
+  const [bids, setBids] = React.useState<OrderMap>(new Map());
+  const ws: React.MutableRefObject<WebSocket | null> = React.useRef(null);
 
-    return {
-        asks
-    }
+  React.useEffect(() => {
+    const params = {
+      event: "subscribe",
+      feed: "book_ui_1",
+      product_ids: ["PI_XBTUSD"],
+    };
+    ws.current = new WebSocket("wss://www.cryptofacilities.com/ws/v1");
+    ws.current.onopen = () => {
+      ws.current?.send(JSON.stringify(params));
+    };
+    ws.current.onclose = () => console.log("ws closed");
+
+    return () => {
+      ws.current?.close();
+    };
+  }, []);
+
+  React.useEffect(() => {
+    if (!ws.current) return;
+
+    ws.current.onmessage = (e) => {
+      const message: OrderMessage = JSON.parse(e.data);
+
+      message.asks && setAsks((asks) => getUpdatedOrderMap(asks, message.asks));
+      message.bids && setBids((bids) => getUpdatedOrderMap(bids, message.bids));
+    };
+  }, []);
+
+  return {
+    asks,
+    bids
+  };
 }
 
 export default useOrderData;

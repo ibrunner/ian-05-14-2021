@@ -1,35 +1,39 @@
 // import React from 'react';
-import './App.css';
+import "./App.css";
 import useOrderData from "./util/useOrderData";
 // TODO remove from package if unused
 // import {uniqueId} from "lodash";
 
 function App() {
- const {asks} = useOrderData();
-  console.info(asks)
+  const { asks, bids } = useOrderData();
+  console.info(asks);
   return (
-    <div>
-      hi im the app
-      {[...asks].map(([price, size]) => {
-        console.log("ask", price);
-      return <AskItem price={price} size={size} key={price}/>
-      })
-    }
+    <div style={{display: "flex"}}>
+      <div className="bids"  style={{backgroundColor: "green", height: 500, overflow: "scroll"}}>
+        {[...bids].map(([price, size]) => {
+          return <OrderRow price={price} size={size} key={price} />;
+        })}
+      </div>
+      <div className="asks" style={{backgroundColor: "red", height: 500, overflow: "scroll"}}>
+        {[...asks].map(([price, size]) => {
+          return <OrderRow price={price} size={size} key={price} />;
+        })}
+      </div>
     </div>
   );
 }
 
 export default App;
 
-type AskItemProps = {
+type OrderRowProps = {
   price: number;
   size: number;
-}
+};
 
-function AskItem({price, size}: AskItemProps) {
-  console.log("price")
-  return (<div>i
-    Price: {price}
-    Size: {size}
-  </div>)
+function OrderRow({ price, size }: OrderRowProps) {
+  return (
+    <div>
+      Price: {price} Size: {size}
+    </div>
+  );
 }
