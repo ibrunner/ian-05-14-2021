@@ -1,23 +1,64 @@
-// import React from 'react';
+import React from "react";
 import "./App.css";
 import useOrderData from "./util/useOrderData";
-// TODO remove from package if unused
-// import {uniqueId} from "lodash";
+import groupedOrderReducer from "./groupedOrderReducer";
+import { GroupedOrder } from "./types";
+import { groupSizes } from "./common";
 
 function App() {
-  const { asks, bids } = useOrderData();
-  console.info(asks);
+  const [state, dispatch] = React.useReducer(groupedOrderReducer, {
+    asks: [],
+    bids: [],
+    groupSize: 1,
+  });
+  const orderSet = useOrderData();
+
+  const { groupSize, asks, bids } = state;
+
+  React.useEffect(() => {
+    dispatch({ type: "ORDER_SET_UPDATED", orderSet });
+  }, [orderSet]);
+
   return (
-    <div style={{display: "flex"}}>
-      <div className="bids"  style={{backgroundColor: "green", height: 500, overflow: "scroll"}}>
-        {[...bids].map(([price, size]) => {
-          return <OrderRow price={price} size={size} key={price} />;
-        })}
+    <div className="container">
+      <div className="group-config">
+        <button
+          onClick={() => dispatch({ type: "GROUP_SIZE_DECREASED", orderSet })}
+          disabled={groupSize === groupSizes[0]}
+        >
+          -
+        </button>
+        Group: {groupSize}
+        <button
+          onClick={() => dispatch({ type: "GROUP_SIZE_INCREASED", orderSet })}
+          disabled={groupSize === groupSizes[groupSizes.length - 1]}
+        >
+          +
+        </button>
       </div>
-      <div className="asks" style={{backgroundColor: "red", height: 500, overflow: "scroll"}}>
-        {[...asks].map(([price, size]) => {
-          return <OrderRow price={price} size={size} key={price} />;
-        })}
+      <div
+        className="orders bids"
+      >
+        <table>
+          <TableHeader />
+          <tbody>
+            {bids.map(({ price, ...rest }) => {
+              return <OrderRow {...rest} price={price} key={price} />;
+            })}
+          </tbody>
+        </table>
+      </div>
+      <div
+        className="orders asks"
+      >
+        <table>
+          <TableHeader />
+          <tbody>
+            {asks.map(({ price, ...rest }) => {
+              return <OrderRow {...rest} price={price} key={price} />;
+            })}
+          </tbody>
+        </table>
       </div>
     </div>
   );
@@ -25,15 +66,26 @@ function App() {
 
 export default App;
 
-type OrderRowProps = {
-  price: number;
-  size: number;
-};
+interface OrderRowProps extends GroupedOrder {}
 
-function OrderRow({ price, size }: OrderRowProps) {
+function OrderRow({ price, size, total }: OrderRowProps) {
   return (
-    <div>
-      Price: {price} Size: {size}
-    </div>
+    <tr>
+      <td>{price}</td>
+      <td>{size}</td>
+      <td>{total}</td>
+    </tr>
+  );
+}
+
+function TableHeader() {
+  return (
+    <thead>
+      <tr>
+        <th className="price">Price</th>
+        <th className="size">Size</th>
+        <th className="total">Total</th>
+      </tr>
+    </thead>
   );
 }
