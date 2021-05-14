@@ -20,45 +20,59 @@ function App() {
   }, [orderSet]);
 
   return (
-    <div className="container">
-      <div className="group-config">
-        <button
-          onClick={() => dispatch({ type: "GROUP_SIZE_DECREASED", orderSet })}
-          disabled={groupSize === groupSizes[0]}
-        >
-          -
-        </button>
-        Group: {groupSize}
-        <button
-          onClick={() => dispatch({ type: "GROUP_SIZE_INCREASED", orderSet })}
-          disabled={groupSize === groupSizes[groupSizes.length - 1]}
-        >
-          +
-        </button>
-      </div>
-      <div
-        className="orders bids"
-      >
-        <table>
-          <TableHeader />
-          <tbody>
-            {bids.map(({ price, ...rest }) => {
-              return <OrderRow {...rest} price={price} key={price} />;
-            })}
-          </tbody>
-        </table>
-      </div>
-      <div
-        className="orders asks"
-      >
-        <table>
-          <TableHeader />
-          <tbody>
-            {asks.map(({ price, ...rest }) => {
-              return <OrderRow {...rest} price={price} key={price} />;
-            })}
-          </tbody>
-        </table>
+    <div className="app">
+      <div className="orders-container center washed-yellow flex">
+        <div className="group-config">
+          <button
+            onClick={() => dispatch({ type: "GROUP_SIZE_DECREASED", orderSet })}
+            disabled={groupSize === groupSizes[0]}
+          >
+            -
+          </button>
+          <div className="group-config-label">
+            Group: <span className="group-config-size">{groupSize}</span>
+          </div>
+          <button
+            onClick={() => dispatch({ type: "GROUP_SIZE_INCREASED", orderSet })}
+            disabled={groupSize === groupSizes[groupSizes.length - 1]}
+          >
+            +
+          </button>
+        </div>
+            <TableHeader title="Bids"/>
+        <div className="orders bids">
+          <table>
+            <tbody>
+              {bids.map(({ price, ...rest }) => {
+                return (
+                  <OrderRow
+                    {...rest}
+                    price={price}
+                    key={price}
+                    color="light-green"
+                  />
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+            <TableHeader title="Asks"/>
+        <div className="orders asks">
+          <table >
+            <tbody>
+              {asks.map(({ price, ...rest }) => {
+                return (
+                  <OrderRow
+                    {...rest}
+                    price={price}
+                    key={price}
+                    color="light-red"
+                  />
+                );
+              })}
+            </tbody>
+          </table>
+          </div>
       </div>
     </div>
   );
@@ -66,26 +80,33 @@ function App() {
 
 export default App;
 
-interface OrderRowProps extends GroupedOrder {}
+interface OrderRowProps extends GroupedOrder {
+  color: "light-green" | "light-red";
+}
 
-function OrderRow({ price, size, total }: OrderRowProps) {
+function OrderRow({ price, size, total, color }: OrderRowProps) {
   return (
     <tr>
-      <td>{price}</td>
+      <td className={color}>{price}</td>
       <td>{size}</td>
       <td>{total}</td>
     </tr>
   );
 }
 
-function TableHeader() {
+function TableHeader({title}: {title: string}) {
   return (
+    <table className="orders-header">
     <thead>
+      <tr>
+        <th colSpan={3}><div className="orders-header-title">{title}</div></th>
+      </tr>
       <tr>
         <th className="price">Price</th>
         <th className="size">Size</th>
         <th className="total">Total</th>
       </tr>
     </thead>
+    </table>
   );
 }
