@@ -37,13 +37,12 @@ function getGroupedOrders(
           const currentGroupOrder: GroupedOrder =
             groupedOrders[currentGroupIndex];
           const newSize = currentGroupOrder.size + size;
-          const newTotal = currentGroupOrder.total + newSize - size;
-
-          groupedOrders[currentGroupIndex] = {
+          const newTotal = currentGroupOrder.total + size;
+          groupedOrders.splice(currentGroupIndex, 1,{
             ...currentGroupOrder,
             size: newSize,
             total: newTotal,
-          };
+          });
         }
       }
     } else {

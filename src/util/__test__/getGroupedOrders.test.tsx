@@ -36,4 +36,14 @@ describe("getGroupedOrders()", () => {
       },
     ]);
   });
+
+  test("accumulates total for multiple groups", () => {
+    expect(getGroupedOrders([{ price: 10, size: 5 }, { price: 20, size: 5 }, { price: 50, size: 5 }], 50)).toEqual([
+      {
+        price: 50,
+        size: 15,
+        total: 15,
+      },
+    ]);
+  });
 });
