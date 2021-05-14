@@ -96,7 +96,7 @@ body {
 .orders {
   height: 35%;
   padding-bottom: 1rem;
-  overflow-y: scroll;
+  overflow-y: auto;
   background-color: rgba(0, 0, 0, 0.2);
 }
 
@@ -129,4 +129,19 @@ body {
 
 .orders-header-title {
   text-align: center;
+}
+
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.error {
+  color: #ff725c;
+  background-color: white;
+  border: 1px solid #ff725c;
+  padding: 1rem;
+  border-radius: 8px;
 }

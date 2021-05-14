@@ -11,13 +11,21 @@ function App() {
     bids: [],
     groupSize: 1,
   });
-  const orderSet = useOrderData();
+  const { orderSet, error } = useOrderData();
 
   const { groupSize, asks, bids } = state;
 
   React.useEffect(() => {
     dispatch({ type: "ORDER_SET_UPDATED", orderSet });
   }, [orderSet]);
+  console.log("error", error);
+  if (error) {
+    return (
+      <div className="error-container">
+        <div className="error">Error Connecting to API</div>
+      </div>
+    );
+  }
 
   return (
     <div className="app">
@@ -39,7 +47,7 @@ function App() {
             +
           </button>
         </div>
-            <TableHeader title="Bids"/>
+        <TableHeader title="Bids" />
         <div className="orders bids">
           <table>
             <tbody>
@@ -56,9 +64,9 @@ function App() {
             </tbody>
           </table>
         </div>
-            <TableHeader title="Asks"/>
+        <TableHeader title="Asks" />
         <div className="orders asks">
-          <table >
+          <table>
             <tbody>
               {asks.map(({ price, ...rest }) => {
                 return (
@@ -72,7 +80,7 @@ function App() {
               })}
             </tbody>
           </table>
-          </div>
+        </div>
       </div>
     </div>
   );
@@ -94,19 +102,21 @@ function OrderRow({ price, size, total, color }: OrderRowProps) {
   );
 }
 
-function TableHeader({title}: {title: string}) {
+function TableHeader({ title }: { title: string }) {
   return (
     <table className="orders-header">
-    <thead>
-      <tr>
-        <th colSpan={3}><div className="orders-header-title">{title}</div></th>
-      </tr>
-      <tr>
-        <th className="price">Price</th>
-        <th className="size">Size</th>
-        <th className="total">Total</th>
-      </tr>
-    </thead>
+      <thead>
+        <tr>
+          <th colSpan={3}>
+            <div className="orders-header-title">{title}</div>
+          </th>
+        </tr>
+        <tr>
+          <th className="price">Price</th>
+          <th className="size">Size</th>
+          <th className="total">Total</th>
+        </tr>
+      </thead>
     </table>
   );
 }
