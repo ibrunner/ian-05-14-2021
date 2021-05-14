@@ -1,25 +1,35 @@
 import React from "react";
 import { Order, OrderSet } from "../types";
 
-export type OrderMessage = {
+type OrderMessage = {
   asks: number[][];
   bids: number[][];
   feed: string;
   product_id: string;
 };
 
-export function getSortedIndex(array: Order[], value: Order): number {
+/**
+ * gets the index of an item in sorted order
+ * @param {Order[]} orderList - the lists of orders
+ * @param {Order} order - the individual order to test
+ */
+function getSortedIndex(orderList: Order[], order: Order): number {
   var low = 0,
-    high = array.length;
+    high = orderList.length;
 
   while (low < high) {
     var mid = (low + high) >>> 1;
-    if (array[mid].price < value.price) low = mid + 1;
+    if (orderList[mid].price < order.price) low = mid + 1;
     else high = mid;
   }
   return low;
 }
 
+/**
+ * processes new orders by sorting and merging them into the orders list
+ * @param {Order[]} orderList - the lists of orders
+ * @param {Order} newOrders - the new list to merge
+ */
 export function getUpdatedOrderList(
   orderList: Order[],
   newOrders: number[][]

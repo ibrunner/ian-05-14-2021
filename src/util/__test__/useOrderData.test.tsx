@@ -1,9 +1,14 @@
 import { getUpdatedOrderList } from "../useOrderData";
-import {orderList} from "./mocks";
+import { orderList } from "./mocks";
 
 describe("getUpdatedOrderList()", () => {
   test("removes orders with size 0", () => {
-    const newOrder = [[50, 0], [1, 0], [500, 0], [900, 0]];
+    const newOrder = [
+      [50, 0],
+      [1, 0],
+      [500, 0],
+      [900, 0],
+    ];
     const listWithRemovedItem = getUpdatedOrderList(orderList, newOrder);
     expect(listWithRemovedItem).toEqual([
       {
@@ -40,7 +45,7 @@ describe("getUpdatedOrderList()", () => {
       {
         price: 900,
         size: 5,
-      }
+      },
     ]);
   });
 
@@ -78,7 +83,7 @@ describe("getUpdatedOrderList()", () => {
       {
         price: 900,
         size: 5,
-      }
+      },
     ]);
   });
 });

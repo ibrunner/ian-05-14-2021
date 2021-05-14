@@ -1,5 +1,10 @@
 import { GroupedOrder, Order, GroupSize } from "../types";
 
+/**
+ * Adds groupings and totals to order lists
+ * @param {Order[]} orders - the lists of orders
+ * @param {GroupSize} groupSize - the size of the grouping
+ */
 function getGroupedOrders(
   orders: Order[],
   groupSize: GroupSize
