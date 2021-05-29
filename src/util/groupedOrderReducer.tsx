@@ -40,10 +40,10 @@ const groupedOrderReducer = (state: State, action: Action): State => {
       return {
         ...state,
         asks: groupSizeDecreased
-          ? getGroupedOrders(action.orderSet.asks, decreasedGroupSize)
+          ? getGroupedOrders(action.orderSet.asks, decreasedGroupSize, "asc")
           : state.asks,
         bids: groupSizeDecreased
-          ? getGroupedOrders(action.orderSet.bids, decreasedGroupSize)
+          ? getGroupedOrders(action.orderSet.bids, decreasedGroupSize, "desc")
           : state.bids,
         groupSize: decreasedGroupSize,
       };
@@ -60,10 +60,10 @@ const groupedOrderReducer = (state: State, action: Action): State => {
       return {
         ...state,
         asks: groupSizeIncreased
-          ? getGroupedOrders(action.orderSet.asks, increasedGroupSize)
+          ? getGroupedOrders(action.orderSet.asks, increasedGroupSize, "asc")
           : state.asks,
         bids: groupSizeIncreased
-          ? getGroupedOrders(action.orderSet.bids, increasedGroupSize)
+          ? getGroupedOrders(action.orderSet.bids, increasedGroupSize, "desc")
           : state.bids,
         groupSize: increasedGroupSize,
       };
@@ -71,8 +71,8 @@ const groupedOrderReducer = (state: State, action: Action): State => {
     case "ORDER_SET_UPDATED":
       return {
         ...state,
-        asks: getGroupedOrders(action.orderSet.asks, state.groupSize),
-        bids: getGroupedOrders(action.orderSet.bids, state.groupSize),
+        asks: getGroupedOrders(action.orderSet.asks, state.groupSize, "asc"),
+        bids: getGroupedOrders(action.orderSet.bids, state.groupSize, "desc"),
       };
 
     default:

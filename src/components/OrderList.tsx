@@ -49,15 +49,14 @@ interface OrdersTableProps {
 }
 
 function OrdersTable({ orderType, orders }: OrdersTableProps) {
-  const highValue: number | null = orders.length
-    ? orders[orders.length - 1].total
-    : null;
+  let highValue: number | null;
+  highValue = orders.length &&  orders[orders.length - 1].total;
 
   return (
     <div className={`orders-table-container ${orderType}`}>
       <table>
         <tbody>
-          {[...orders].reverse().map(({ price, ...rest }) => {
+          {orders.map(({ price, ...rest }) => {
             return (
               <OrderRow
                 {...rest}
@@ -80,15 +79,20 @@ interface OrderRowProps extends GroupedOrder {
 }
 
 function OrderRow({ price, size, total, highValue, orderType }: OrderRowProps) {
-  const relativeValue = highValue && highValue !== 0 ? (total / highValue) * 0.5 : 0;
+  const relativeValue = highValue && highValue !== 0 ? (total / highValue) * 100 : 0;
   const rgb = orderType === "bids" ? "158, 235, 207" : "255, 114, 92";
+  const background = `linear-gradient(to right, rgba(${rgb}, .25) ${relativeValue}%, rgba(0, 0, 0, 0) ${relativeValue}%)`
   return (
-    <tr>
+    <tr
+    style={{
+      background
+     }}
+     >
       <td
         className="price"
-        style={{ backgroundColor: `rgba(${rgb}, ${relativeValue})` }}
+
       >
-        {price.toFixed(2).toLocaleString()}
+        {price.toLocaleString(undefined, {minimumFractionDigits: 2})}
       </td>
       <td>{size.toLocaleString()}</td>
       <td>{total.toLocaleString()}</td>

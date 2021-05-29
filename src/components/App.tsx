@@ -1,49 +1,37 @@
 import React from "react";
 import "../styles/App.css";
-import useOrderData from "../util/useOrderData";
-import groupedOrderReducer from "../util/groupedOrderReducer";
-import GroupConfig from "./GroupConfig";
-import OrderList from "./OrderList";
+import OrderBook from "./OrderBook";
+import OrderTotals from "./OrderTotals";
+import useOrderData, { OrderContext } from "../util/useOrderData";
 
 function App() {
-  const [state, dispatch] = React.useReducer(groupedOrderReducer, {
-    asks: [],
-    bids: [],
-    groupSize: 1,
-  });
-  const { orderSet, error } = useOrderData();
+  const [showOrderBook, setShowOrderBook] = React.useState<boolean>(true);
+  const [showOrderTotals, setShowOrderTotals] = React.useState<boolean>(false);
+  const orderData = useOrderData();
 
-  const { groupSize, asks, bids } = state;
+  const toggleOrderBook = () => {
+    setShowOrderBook(!showOrderBook);
+  };
 
-  React.useEffect(() => {
-    dispatch({ type: "ORDER_SET_UPDATED", orderSet });
-  }, [orderSet]);
-  if (error) {
-    return (
-      <div className="error-container">
-        <div className="error">Error Connecting to API</div>
-      </div>
-    );
-  }
+  const toggleOrderTotals = () => {
+    setShowOrderTotals(!showOrderTotals);
+  };
 
   return (
-    <div className="app">
-      <div className="layout-container center washed-yellow flex">
-        <GroupConfig
-          groupSize={groupSize}
-          onIncrease={() =>
-            dispatch({ type: "GROUP_SIZE_INCREASED", orderSet })
-          }
-          onDecrease={() =>
-            dispatch({ type: "GROUP_SIZE_DECREASED", orderSet })
-          }
-        />
-        <div className="orders-container">
-          <OrderList orderType="bids" orders={bids} />
-          <OrderList orderType="asks" orders={asks} />
-        </div>
+    <OrderContext.Provider value={orderData}>
+      <div>
+        <button onClick={toggleOrderTotals}>
+          {showOrderTotals ? "Hide Order Totals" : "Show Order Totals"}
+        </button>
+        {showOrderTotals && <OrderTotals />}
       </div>
-    </div>
+      <div>
+        <button onClick={toggleOrderBook}>
+          {showOrderBook ? "Hide Order Book" : "Show Order Book"}
+        </button>
+        {showOrderBook && <OrderBook />}
+      </div>
+    </OrderContext.Provider>
   );
 }
 

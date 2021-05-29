@@ -3,7 +3,7 @@ import { orderList } from "./mocks";
 
 describe("getGroupedOrders()", () => {
   test("aggregates orders by group and calculates totals", () => {
-    expect(getGroupedOrders(orderList, 5)).toEqual([
+    expect(getGroupedOrders(orderList, 5, "asc")).toEqual([
       {
         price: 5,
         size: 10,
@@ -28,7 +28,7 @@ describe("getGroupedOrders()", () => {
   });
 
   test("calculates total when ceil is above original group value", () => {
-    expect(getGroupedOrders([{ price: 50, size: 5 }], 5)).toEqual([
+    expect(getGroupedOrders([{ price: 50, size: 5 }], 5, "asc")).toEqual([
       {
         price: 50,
         size: 5,
@@ -38,7 +38,7 @@ describe("getGroupedOrders()", () => {
   });
 
   test("accumulates total for multiple groups", () => {
-    expect(getGroupedOrders([{ price: 10, size: 5 }, { price: 20, size: 5 }, { price: 50, size: 5 }], 50)).toEqual([
+    expect(getGroupedOrders([{ price: 10, size: 5 }, { price: 20, size: 5 }, { price: 50, size: 5 }], 50, "asc")).toEqual([
       {
         price: 50,
         size: 15,
