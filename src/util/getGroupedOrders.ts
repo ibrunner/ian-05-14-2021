@@ -4,6 +4,7 @@ import { GroupedOrder, Order, GroupSize } from "../types";
  * Adds groupings and totals to order lists
  * @param {Order[]} orders - the lists of orders
  * @param {GroupSize} groupSize - the size of the grouping
+ * @param {"asc" | "desc"} totalDirection - the direction to total
  */
 function getGroupedOrders(
   orders: Order[],
@@ -17,7 +18,7 @@ function getGroupedOrders(
   }
 
   // set initial groupVal
-  let groupedOrders: Omit<GroupedOrder, "total">[] = [];
+  let groupedOrders: Order[] = [];
   let currentGroupVal: number = groupSize;
   let currentGroupIndex = 0;
   // for every order
@@ -28,7 +29,7 @@ function getGroupedOrders(
     if (price <= currentGroupVal) {
       // list empty, add first element
       if (!groupedOrders.length) {
-        groupedOrders.push({ price: currentGroupVal, size /*total: size*/ });
+        groupedOrders.push({ price: currentGroupVal, size });
       } else {
         // list not empty
         // if first item in group
@@ -36,19 +37,16 @@ function getGroupedOrders(
           groupedOrders.push({
             price: currentGroupVal,
             size,
-            // total: size + groupedOrders[currentGroupIndex].total,
           });
           currentGroupIndex++;
         } else {
           // recalculate last groupedOrders item
-          const currentGroupOrder: Omit<GroupedOrder, "total"> =
+          const currentGroupOrder: Order =
             groupedOrders[currentGroupIndex];
           const newSize = currentGroupOrder.size + size;
-          // const newTotal = currentGroupOrder.total + size;
           groupedOrders.splice(currentGroupIndex, 1, {
             ...currentGroupOrder,
             size: newSize,
-            // total: newTotal,
           });
         }
       }
@@ -57,19 +55,21 @@ function getGroupedOrders(
       currentGroupVal = Math.ceil(price / groupSize) * groupSize;
 
       if (!groupedOrders.length) {
-        groupedOrders.push({ price: currentGroupVal, size /*total: size */ });
+        groupedOrders.push({ price: currentGroupVal, size });
       } else {
-        // const newTotal = size + groupedOrders[currentGroupIndex].total;
 
         // add to last groupedOrders item
         groupedOrders.push({
           price: currentGroupVal,
           size,
-          // total: newTotal,
         });
         currentGroupIndex++;
       }
     }
+  }
+
+  if(!groupedOrders.length) {
+    return [];
   }
   
   let groupedOrdersWithTotals: GroupedOrder[] = [];
@@ -99,8 +99,6 @@ function getGroupedOrders(
         total: element.size + groupedOrdersWithTotals[groupedOrdersWithTotals.length-1].total,
       });
     }
-    
-    groupedOrdersWithTotals.reverse();
   }
 
   return groupedOrdersWithTotals;

@@ -50,15 +50,13 @@ interface OrdersTableProps {
 
 function OrdersTable({ orderType, orders }: OrdersTableProps) {
   let highValue: number | null;
-  if(orders.length) {
-    highValue = orderType === "asks" ? orders[orders.length - 1].total : orders[0].total
-  }
+  highValue = orders.length &&  orders[orders.length - 1].total;
 
   return (
     <div className={`orders-table-container ${orderType}`}>
       <table>
         <tbody>
-          {[...orders].reverse().map(({ price, ...rest }) => {
+          {orders.map(({ price, ...rest }) => {
             return (
               <OrderRow
                 {...rest}

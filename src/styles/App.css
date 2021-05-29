@@ -79,7 +79,6 @@ body {
 
 /* Orders Header */
 .orders-header th {
-  text-align: left;
   width: 33.333%;
 }
 
@@ -94,13 +93,19 @@ body {
   background-color: rgba(0, 0, 0, 0.2);
 }
 
+.orders-table-container.asks {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
 .orders-table-container table {
   width: 100%;
   border-collapse: collapse;
 }
 
-.orders-table-container table tr {
-  text-align: left;
+th,
+tr {
+  text-align: right;
 }
 
 .orders-table-container table tbody tr {
@@ -118,6 +123,18 @@ body {
 
 .bids td.price {
   color: #9eebcf;
+}
+
+.asks tbody {
+  display: flex;
+  flex-wrap: wrap;
+  flex-grow: inherit;
+  flex-direction: column-reverse;
+}
+
+.asks tbody tr {
+  width: 100%;
+  display: flex;
 }
 
 .asks td.price {
