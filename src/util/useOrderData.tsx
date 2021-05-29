@@ -74,6 +74,7 @@ export function getUpdatedOrderList(
 }
 
 function useOrderData() {
+  const [paused, setPaused] = React.useState<Boolean>(false);
   const [orderSet, setOrderSet] = React.useState<OrderSet>({
     asks: [],
     bids: [],
@@ -102,20 +103,34 @@ function useOrderData() {
     if (!ws.current) return;
 
     ws.current.onmessage = (e) => {
-      const message: OrderMessage = JSON.parse(e.data);
+      if (!paused) {
+        const message: OrderMessage = JSON.parse(e.data);
 
-      setOrderSet(({ asks, bids }) => ({
-        asks: message.asks ? getUpdatedOrderList(asks, message.asks) : asks,
-        bids: message.bids ? getUpdatedOrderList(bids, message.bids) : bids,
-      }));
+        setOrderSet(({ asks, bids }) => ({
+          asks: message.asks ? getUpdatedOrderList(asks, message.asks) : asks,
+          bids: message.bids ? getUpdatedOrderList(bids, message.bids) : bids,
+        }));
+      }
     };
 
     ws.current.onerror = (e) => {
       setError(e);
       console.error("WebSocket error observed:", e);
     };
-  }, []);
+  }, [paused]);
 
+  React.useEffect(() => {
+    const unpauseOnFocus = () => setPaused(false)
+    const pauseOnBlur = () => setPaused(true)
+
+    window.addEventListener("focus", unpauseOnFocus);
+    window.addEventListener("blur", pauseOnBlur);
+
+    return () => {
+      window.removeEventListener("focus", unpauseOnFocus);
+      window.removeEventListener("blur", pauseOnBlur);
+    }
+  }, [setPaused])
   return {
     orderSet,
     error,
