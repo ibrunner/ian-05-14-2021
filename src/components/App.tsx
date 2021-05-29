@@ -39,8 +39,8 @@ function App() {
           }
         />
         <div className="orders-container">
-          <OrderList orderType="bids" orders={bids} />
           <OrderList orderType="asks" orders={asks} />
+          <OrderList orderType="bids" orders={bids} />
         </div>
       </div>
     </div>

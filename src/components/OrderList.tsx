@@ -49,9 +49,10 @@ interface OrdersTableProps {
 }
 
 function OrdersTable({ orderType, orders }: OrdersTableProps) {
-  const highValue: number | null = orders.length
-    ? orders[orders.length - 1].total
-    : null;
+  let highValue: number | null;
+  if(orders.length) {
+    highValue = orderType === "asks" ? orders[orders.length - 1].total : orders[0].total
+  }
 
   return (
     <div className={`orders-table-container ${orderType}`}>
