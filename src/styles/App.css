@@ -95,7 +95,7 @@ body {
 
 .orders-table-container.asks {
   display: flex;
-  flex-direction: ;
+  flex-direction: column-reverse;
 }
 
 .orders-table-container table {
