@@ -1,6 +1,20 @@
 import React from "react";
 import { Order, OrderSet } from "../types";
-import useIsVisible from "./useIsVisible"
+import useIsVisible from "./useIsVisible";
+
+/**
+ * Access the previous value of a prop or state
+ * From the react docs:
+ * https://reactjs.org/docs/hooks-faq.html#how-to-get-the-previous-props-or-state
+ * @param value The value to store
+ */
+export function usePrevious<T>(value: T): T | undefined {
+  const ref = React.useRef<T>();
+  React.useEffect(() => {
+    ref.current = value;
+  });
+  return ref.current;
+}
 
 type OrderMessage = {
   asks: number[][];
@@ -79,28 +93,32 @@ interface UseOrderData {
   error: Event | null;
   addListener: () => void;
   removeListener: () => void;
-};
+}
 
 function useOrderData(): UseOrderData {
-  const visible = useIsVisible()
+  const visible = useIsVisible();
+  const prevVisible = usePrevious(visible);
   const [orderSet, setOrderSet] = React.useState<OrderSet>({
     asks: [],
     bids: [],
   });
-  const [listenerCount, setListenerCount] = React.useState<number>(1);
+  const [listenerCount, setListenerCount] = React.useState<number>(0);
+  const prevListenerCount = usePrevious(listenerCount);
   const [error, setError] = React.useState<Event | null>(null);
   const ws: React.MutableRefObject<WebSocket | null> = React.useRef(null);
-  
-  const addListener = () => {
-    setListenerCount(listenerCount + 1);
-  }
 
-  const removeListener = () => {
-    setListenerCount(listenerCount - 1);
-  }
+  const addListener = React.useCallback(() => {
+    // console.info("add listener");
+    setListenerCount((listenerCount) => listenerCount + 1);
+  }, [setListenerCount]);
+
+  const removeListener = React.useCallback(() => {
+    // console.info("remove listener");
+    setListenerCount((listenerCount) => listenerCount - 1);
+  }, [setListenerCount]);
 
   const initializeWS = React.useCallback(() => {
-    console.log("init code")
+    // console.log("init code");
     const params = {
       event: "subscribe",
       feed: "book_ui_1",
@@ -108,7 +126,7 @@ function useOrderData(): UseOrderData {
     };
     ws.current = new WebSocket("wss://www.cryptofacilities.com/ws/v1");
     ws.current.onopen = () => {
-      console.info("on open")
+      // console.info("on open");
       ws.current?.send(JSON.stringify(params));
     };
     ws.current.onclose = () => console.log("ws closed");
@@ -116,16 +134,14 @@ function useOrderData(): UseOrderData {
 
   const initializeOnMessage = React.useCallback(() => {
     if (!ws.current) return;
-    console.log("setting message")
-      ws.current.onmessage = (e) => {
-        // if(listenerCount) {
-        const message: OrderMessage = JSON.parse(e.data);
+    // console.log("setting message");
+    ws.current.onmessage = (e) => {
+      const message: OrderMessage = JSON.parse(e.data);
 
-        setOrderSet(({ asks, bids }) => ({
-          asks: message.asks ? getUpdatedOrderList(asks, message.asks) : asks,
-          bids: message.bids ? getUpdatedOrderList(bids, message.bids) : bids,
-        }));
-      // }
+      setOrderSet(({ asks, bids }) => ({
+        asks: message.asks ? getUpdatedOrderList(asks, message.asks) : asks,
+        bids: message.bids ? getUpdatedOrderList(bids, message.bids) : bids,
+      }));
     };
   }, []);
 
@@ -138,61 +154,48 @@ function useOrderData(): UseOrderData {
   }, []);
 
   const closeWS = React.useCallback(() => {
-    console.log("close")
+    console.log("closeWS");
     ws.current?.close();
   }, []);
 
-  // React.useEffect(() => {
-  //   if(listenerCount === 1){
-  //     initializeWS();
-  //   } else if(listenerCount < 1) {
-  //     closeWS();
-  //   }
-
-  //   return () => {
-  //     closeWS()
-  //   };
-  // }, [listenerCount, initializeWS, closeWS]);
-
   React.useEffect(() => {
-    if(visible){
-      console.log("visibile init");
+    const visibleChanged = visible !== prevVisible;
+    const listenerCountChanged = listenerCount !== prevListenerCount;
+    // console.log("main effect running");
+    // console.log("visible", visible);
+    // console.log("visibleChanged", visibleChanged);
+    // console.log("listenerCount", listenerCount);
+    // console.log("listenerCountChanged", listenerCountChanged);
+    if (
+      (visible && visibleChanged && listenerCount) ||
+      (prevListenerCount === 0 && listenerCount === 1 && visible)
+    ) {
+      // console.log("visibile and listener init");
       initializeWS();
       initializeOnMessage();
       initializeOnError();
-    } else {
-      console.log("invisibile close");
+    } else if (
+      (!visible && visibleChanged) ||
+      (listenerCount < 1 && listenerCountChanged)
+    ) {
+      // console.log("invisibile or listener close");
       closeWS();
     }
-  }, [visible, initializeWS, closeWS,initializeOnMessage,initializeOnError ]);
-
-  React.useEffect(() => {
-    if (!ws.current) return;
-    // console.log("setting message")
-    //   ws.current.onmessage = (e) => {
-    //     if(listenerCount) {
-    //     const message: OrderMessage = JSON.parse(e.data);
-
-    //     setOrderSet(({ asks, bids }) => ({
-    //       asks: message.asks ? getUpdatedOrderList(asks, message.asks) : asks,
-    //       bids: message.bids ? getUpdatedOrderList(bids, message.bids) : bids,
-    //     }));
-    //   }
-    // };
-    initializeOnMessage();
-    initializeOnError();
-
-    return () => {
-      closeWS()
-    };
-
-  }, [initializeOnMessage, initializeOnError, closeWS /*listenerCount*/]);
-
+  }, [
+    visible,
+    listenerCount,
+    prevVisible,
+    prevListenerCount,
+    initializeWS,
+    closeWS,
+    initializeOnMessage,
+    initializeOnError,
+  ]);
 
   // cleanup on unmount
   React.useEffect(() => {
     return () => {
-      closeWS()
+      closeWS();
     };
   }, [closeWS]);
 
@@ -200,12 +203,28 @@ function useOrderData(): UseOrderData {
     orderSet,
     error,
     addListener,
-    removeListener
+    removeListener,
   };
 }
 
 export default useOrderData;
 
-export const OrderContext = React.createContext((null as unknown) as UseOrderData);
+export const OrderContext = React.createContext(
+  null as unknown as UseOrderData
+);
 
 export const useOrderDataContext = () => React.useContext(OrderContext);
+
+export const useOrderDataListener = () => {
+  const { orderSet, error, addListener, removeListener } =
+    useOrderDataContext();
+
+  React.useEffect(() => {
+    addListener();
+    return () => {
+      removeListener();
+    };
+  }, [addListener, removeListener]);
+
+  return { orderSet, error };
+};

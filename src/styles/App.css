@@ -199,3 +199,17 @@ tr {
     order: 3;
   }
 }
+
+/* totals */
+.totals {
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.totals .bids {
+  color: #9eebcf;
+}
+
+.totals .asks {
+  color: #ff725c;
+}

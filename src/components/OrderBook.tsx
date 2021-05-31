@@ -1,18 +1,18 @@
 import React from "react";
-import {useOrderDataContext} from "../util/useOrderData";
+import { useOrderDataListener } from "../util/useOrderData";
 import groupedOrderReducer from "../util/groupedOrderReducer";
 import GroupConfig from "./GroupConfig";
 import OrderList from "./OrderList";
 
-function App() {
+function OrderBook() {
   const [state, dispatch] = React.useReducer(groupedOrderReducer, {
     asks: [],
     bids: [],
     groupSize: 1,
   });
-  const orderDataContext = useOrderDataContext();
-  const {orderSet, error} = orderDataContext;
   const { groupSize, asks, bids } = state;
+
+  const { orderSet, error }  = useOrderDataListener();
 
   React.useEffect(() => {
     dispatch({ type: "ORDER_SET_UPDATED", orderSet });
@@ -46,4 +46,4 @@ function App() {
   );
 }
 
-export default App;
+export default OrderBook;
