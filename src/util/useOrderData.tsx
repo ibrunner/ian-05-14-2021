@@ -1,5 +1,6 @@
 import React from "react";
 import { Order, OrderSet } from "../types";
+import useIsVisible from "./useIsVisible";
 
 type OrderMessage = {
   asks: number[][];
@@ -74,7 +75,7 @@ export function getUpdatedOrderList(
 }
 
 function useOrderData() {
-  const [paused, setPaused] = React.useState<Boolean>(false);
+  // const [paused, setPaused] = React.useState<Boolean>(false);
   const [orderSet, setOrderSet] = React.useState<OrderSet>({
     asks: [],
     bids: [],
@@ -82,6 +83,7 @@ function useOrderData() {
   const [error, setError] = React.useState<Event | null>(null);
   const ws: React.MutableRefObject<WebSocket | null> = React.useRef(null);
 
+  const visible = useIsVisible()
   React.useEffect(() => {
     const params = {
       event: "subscribe",
@@ -103,7 +105,7 @@ function useOrderData() {
     if (!ws.current) return;
 
     ws.current.onmessage = (e) => {
-      if (!paused) {
+      if (visible) {
         const message: OrderMessage = JSON.parse(e.data);
 
         setOrderSet(({ asks, bids }) => ({
@@ -117,20 +119,9 @@ function useOrderData() {
       setError(e);
       console.error("WebSocket error observed:", e);
     };
-  }, [paused]);
+  }, [visible]);
 
-  React.useEffect(() => {
-    const unpauseOnFocus = () => setPaused(false)
-    const pauseOnBlur = () => setPaused(true)
 
-    window.addEventListener("focus", unpauseOnFocus);
-    window.addEventListener("blur", pauseOnBlur);
-
-    return () => {
-      window.removeEventListener("focus", unpauseOnFocus);
-      window.removeEventListener("blur", pauseOnBlur);
-    }
-  }, [setPaused])
   return {
     orderSet,
     error,
