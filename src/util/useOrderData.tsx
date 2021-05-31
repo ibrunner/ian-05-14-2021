@@ -1,5 +1,6 @@
 import React from "react";
 import { Order, OrderSet } from "../types";
+import useIsVisible from "./useIsVisible"
 
 type OrderMessage = {
   asks: number[][];
@@ -73,15 +74,33 @@ export function getUpdatedOrderList(
   return updatedOrders;
 }
 
-function useOrderData() {
+interface UseOrderData {
+  orderSet: OrderSet;
+  error: Event | null;
+  addListener: () => void;
+  removeListener: () => void;
+};
+
+function useOrderData(): UseOrderData {
+  const visible = useIsVisible()
   const [orderSet, setOrderSet] = React.useState<OrderSet>({
     asks: [],
     bids: [],
   });
+  const [listenerCount, setListenerCount] = React.useState<number>(1);
   const [error, setError] = React.useState<Event | null>(null);
   const ws: React.MutableRefObject<WebSocket | null> = React.useRef(null);
   
-  React.useEffect(() => {
+  const addListener = () => {
+    setListenerCount(listenerCount + 1);
+  }
+
+  const removeListener = () => {
+    setListenerCount(listenerCount - 1);
+  }
+
+  const initializeWS = React.useCallback(() => {
+    console.log("init code")
     const params = {
       event: "subscribe",
       feed: "book_ui_1",
@@ -89,37 +108,104 @@ function useOrderData() {
     };
     ws.current = new WebSocket("wss://www.cryptofacilities.com/ws/v1");
     ws.current.onopen = () => {
+      console.info("on open")
       ws.current?.send(JSON.stringify(params));
     };
     ws.current.onclose = () => console.log("ws closed");
-
-    return () => {
-      ws.current?.close();
-    };
   }, []);
 
-  React.useEffect(() => {
+  const initializeOnMessage = React.useCallback(() => {
     if (!ws.current) return;
-    ws.current.onmessage = (e) => {
+    console.log("setting message")
+      ws.current.onmessage = (e) => {
+        // if(listenerCount) {
         const message: OrderMessage = JSON.parse(e.data);
 
         setOrderSet(({ asks, bids }) => ({
           asks: message.asks ? getUpdatedOrderList(asks, message.asks) : asks,
           bids: message.bids ? getUpdatedOrderList(bids, message.bids) : bids,
         }));
+      // }
     };
+  }, []);
 
+  const initializeOnError = React.useCallback(() => {
+    if (!ws.current) return;
     ws.current.onerror = (e) => {
       setError(e);
       console.error("WebSocket error observed:", e);
     };
   }, []);
 
+  const closeWS = React.useCallback(() => {
+    console.log("close")
+    ws.current?.close();
+  }, []);
+
+  // React.useEffect(() => {
+  //   if(listenerCount === 1){
+  //     initializeWS();
+  //   } else if(listenerCount < 1) {
+  //     closeWS();
+  //   }
+
+  //   return () => {
+  //     closeWS()
+  //   };
+  // }, [listenerCount, initializeWS, closeWS]);
+
+  React.useEffect(() => {
+    if(visible){
+      console.log("visibile init");
+      initializeWS();
+      initializeOnMessage();
+      initializeOnError();
+    } else {
+      console.log("invisibile close");
+      closeWS();
+    }
+  }, [visible, initializeWS, closeWS,initializeOnMessage,initializeOnError ]);
+
+  React.useEffect(() => {
+    if (!ws.current) return;
+    // console.log("setting message")
+    //   ws.current.onmessage = (e) => {
+    //     if(listenerCount) {
+    //     const message: OrderMessage = JSON.parse(e.data);
+
+    //     setOrderSet(({ asks, bids }) => ({
+    //       asks: message.asks ? getUpdatedOrderList(asks, message.asks) : asks,
+    //       bids: message.bids ? getUpdatedOrderList(bids, message.bids) : bids,
+    //     }));
+    //   }
+    // };
+    initializeOnMessage();
+    initializeOnError();
+
+    return () => {
+      closeWS()
+    };
+
+  }, [initializeOnMessage, initializeOnError, closeWS /*listenerCount*/]);
+
+
+  // cleanup on unmount
+  React.useEffect(() => {
+    return () => {
+      closeWS()
+    };
+  }, [closeWS]);
 
   return {
     orderSet,
     error,
+    addListener,
+    removeListener
   };
 }
 
 export default useOrderData;
+
+export const OrderContext = React.createContext((null as unknown) as UseOrderData);
+
+export const useOrderDataContext = () => React.useContext(OrderContext);

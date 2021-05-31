@@ -1,5 +1,5 @@
 import React from "react";
-import useOrderData from "../util/useOrderData";
+import {useOrderDataContext} from "../util/useOrderData";
 import groupedOrderReducer from "../util/groupedOrderReducer";
 import GroupConfig from "./GroupConfig";
 import OrderList from "./OrderList";
@@ -10,8 +10,8 @@ function App() {
     bids: [],
     groupSize: 1,
   });
-  const { orderSet, error } = useOrderData();
-
+  const orderDataContext = useOrderDataContext();
+  const {orderSet, error} = orderDataContext;
   const { groupSize, asks, bids } = state;
 
   React.useEffect(() => {
