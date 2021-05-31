@@ -1,6 +1,5 @@
 import React from "react";
 import { Order, OrderSet } from "../types";
-import useIsVisible from "./useIsVisible";
 
 type OrderMessage = {
   asks: number[][];
@@ -75,15 +74,13 @@ export function getUpdatedOrderList(
 }
 
 function useOrderData() {
-  // const [paused, setPaused] = React.useState<Boolean>(false);
   const [orderSet, setOrderSet] = React.useState<OrderSet>({
     asks: [],
     bids: [],
   });
   const [error, setError] = React.useState<Event | null>(null);
   const ws: React.MutableRefObject<WebSocket | null> = React.useRef(null);
-
-  const visible = useIsVisible()
+  
   React.useEffect(() => {
     const params = {
       event: "subscribe",
@@ -103,23 +100,20 @@ function useOrderData() {
 
   React.useEffect(() => {
     if (!ws.current) return;
-
     ws.current.onmessage = (e) => {
-      if (visible) {
         const message: OrderMessage = JSON.parse(e.data);
 
         setOrderSet(({ asks, bids }) => ({
           asks: message.asks ? getUpdatedOrderList(asks, message.asks) : asks,
           bids: message.bids ? getUpdatedOrderList(bids, message.bids) : bids,
         }));
-      }
     };
 
     ws.current.onerror = (e) => {
       setError(e);
       console.error("WebSocket error observed:", e);
     };
-  }, [visible]);
+  }, []);
 
 
   return {

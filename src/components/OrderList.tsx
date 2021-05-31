@@ -79,13 +79,18 @@ interface OrderRowProps extends GroupedOrder {
 }
 
 function OrderRow({ price, size, total, highValue, orderType }: OrderRowProps) {
-  const relativeValue = highValue && highValue !== 0 ? (total / highValue) * 0.5 : 0;
+  const relativeValue = highValue && highValue !== 0 ? (total / highValue) * 100 : 0;
   const rgb = orderType === "bids" ? "158, 235, 207" : "255, 114, 92";
+  const background = `linear-gradient(to right, rgba(${rgb}, .25) ${relativeValue}%, rgba(0, 0, 0, 0) ${relativeValue}%)`
   return (
-    <tr>
+    <tr
+    style={{
+      background
+     }}
+     >
       <td
         className="price"
-        style={{ backgroundColor: `rgba(${rgb}, ${relativeValue})` }}
+
       >
         {price.toFixed(2).toLocaleString()}
       </td>
