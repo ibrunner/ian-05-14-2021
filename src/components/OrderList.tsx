@@ -92,7 +92,7 @@ function OrderRow({ price, size, total, highValue, orderType }: OrderRowProps) {
         className="price"
 
       >
-        {price.toFixed(2).toLocaleString()}
+        {price.toLocaleString(undefined, {minimumFractionDigits: 2})}
       </td>
       <td>{size.toLocaleString()}</td>
       <td>{total.toLocaleString()}</td>
